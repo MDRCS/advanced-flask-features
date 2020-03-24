@@ -1,13 +1,10 @@
-from marshmallow import Schema, fields
+from models.user import UserModel
+from ma import ma
 
 
-class UserSchema(Schema):
+class UserSchema(ma.ModelSchema):
     class Meta:
+        model = UserModel
         load_only = ("password",)  # the data structure is a Tuple, don't forget the comma
-        dump_only = ("id",)
-    id = fields.Int(required=False)
-    username = fields.Str(required=True)
-    password = fields.Str(required=True)
-
-
+        dump_only = ("id", "activated",)
 

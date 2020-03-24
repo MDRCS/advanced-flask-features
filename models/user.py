@@ -1,22 +1,56 @@
+import os
 from typing import Dict, Union
+from flask import request, url_for
+import requests
 from db import db
 
 userJSON = Dict[str, Union[int, str]]
+
+MAILGUN_API_URL = os.environ.get('MAILGUN_API_URL')
+MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY')
+
+FROM = 'Mailgun Sandbox <postmaster@sandbox19504dde8aa64489a091e1e67640c06e.mailgun.org>'
+
+
+class MailGunException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
 
 
 class UserModel(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(80))
-
-    def __init__(self, username: str, password: str):
-        self.username = username
-        self.password = password
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    password = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(80), nullable=False, unique=True)
+    activated = db.Column(db.Boolean, default=False)
 
     def json(self) -> Dict:
         return {"id": self.id, "username": self.username, "password": self.password}
+
+    def send_confirmation_email(self):
+        # http://127.0.0.1:5000/user-confirm/1
+        link = request.url_root[0:-1] + url_for("userconfirmation", user_id=self.id)
+
+        if not MAILGUN_API_KEY:
+            raise MailGunException("Failed to load MAILGUN API KEY")
+
+        if not MAILGUN_API_URL:
+            raise MailGunException("Failed to load MAILGUN API URL")
+
+        response = requests.post(
+            MAILGUN_API_URL,
+            auth=("api", MAILGUN_API_KEY),
+            data={"from": FROM,
+                  "to": self.email,
+                  "subject": "REGISTRATION CONFIRMATION",
+                  "text": f"Please Click the link to confirm your registration: {link}"})
+
+        if response.status_code != 200:
+            raise MailGunException("Failed to send registration Email to the user")
+
+        return response
 
     @classmethod
     def find_by_username(cls, username: str) -> "UserModel":
@@ -25,6 +59,10 @@ class UserModel(db.Model):
     @classmethod
     def find_by_id(cls, _id: int) -> "UserModel":
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_by_email(cls, email: str) -> "UserModel":
+        return cls.query.filter_by(email=email).first()
 
     def save_to_db(self) -> None:
         db.session.add(self)

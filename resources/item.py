@@ -4,7 +4,7 @@ from flask_jwt_extended import (
     jwt_required,
     fresh_jwt_required,
 )
-from marshmallow import ValidationError
+
 from models.item import ItemModel
 from schemas.item import ItemSchema
 
@@ -15,6 +15,7 @@ INSERT_ERROR = "An error occurred while inserting the item."
 ITEM_DELETED = "Item deleted."
 
 item_schema = ItemSchema()
+item_list_schema = ItemSchema(many=True)
 
 
 class Item(Resource):
@@ -41,12 +42,8 @@ class Item(Resource):
                 400,
             )
 
-        try:
-            item_data = item_schema.load(request.get_json())
-        except ValidationError as err:
-            return err.messages, 400
-
-        item = ItemModel(name, **item_data)
+        item = item_schema.load(request.get_json())
+        item = ItemModel(name, **item)
 
         try:
             item.save_to_db()
@@ -64,7 +61,7 @@ class Item(Resource):
         return {"message": ITEM_NOT_FOUND}, 404
 
     def put(self, name):
-        data = Item.parser.parse_args()
+        data = request.get_json()
 
         item = ItemModel.find_by_name(name)
 
@@ -80,5 +77,4 @@ class Item(Resource):
 
 class ItemList(Resource):
     def get(self):
-        items = [item_schema.dump(item) for item in ItemModel.find_all()]
-        return {"items": items}, 200
+        return {"items": item_list_schema.dump(ItemModel.find_all())}, 200

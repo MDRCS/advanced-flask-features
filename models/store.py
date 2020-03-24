@@ -1,22 +1,16 @@
-from typing import List, Dict
+from typing import List
 from db import db
-from .item import itemJSON
-
-storeJSON = Dict[str, Dict[str, List[itemJSON]]]
 
 
 class StoreModel(db.Model):
     __tablename__ = "stores"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True)
+    name = db.Column(db.String(80), nullable=False, unique=True)
 
     items = db.relationship("ItemModel", lazy="dynamic")
 
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-    def json(self) -> storeJSON:
+    def json(self) -> List["StoreModel"]:
         return {
             "id": self.id,
             "name": self.name,

@@ -1,6 +1,12 @@
-from marshmallow import schema, fields
+from ma import ma
+from models.store import StoreModel  # The order of import is important
+from models.item import ItemModel
 
 
-class StoreSchema(schema):
-    id = fields.Int()
-    name = fields.Str(required=True)
+class StoreSchema(ma.ModelSchema):
+    items = ma.Nested(ItemModel, many=True)
+
+    class Meta:
+        model = StoreModel
+        dump_only = ("id",)
+        include_fk = True

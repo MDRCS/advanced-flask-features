@@ -1,10 +1,11 @@
-from marshmallow import Schema, fields
+from ma import ma
+from models.item import ItemModel
+from models.store import StoreModel
 
 
-class ItemSchema(Schema):
-    id = fields.Int()
-    name = fields.Str(required=True)
-    price = fields.Float(required=True)
-    store_id = fields.Int(required=True)
-
-
+class ItemSchema(ma.ModelSchema):
+    class Meta:
+        model = ItemModel
+        load_only = ("store",)
+        dump_only = ("id",)
+        include_fk = True
