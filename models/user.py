@@ -3,6 +3,7 @@ from typing import Dict, Union
 from flask import request, url_for
 import requests
 from db import db
+from .confirmation import ConfirmationModel
 
 userJSON = Dict[str, Union[int, str]]
 
@@ -24,14 +25,34 @@ class UserModel(db.Model):
     username = db.Column(db.String(80), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(80), nullable=False, unique=True)
-    activated = db.Column(db.Boolean, default=False)
+    # LAZY=DYNAMIC # MEAN THAT IF YOU TRY FOR EXAMPLE TO CREATE THAT OBJECT (User) THE CLASS WITH WHICH YOU HAVE THIS
+    # RELATIONSHIP (ConfirmationModel) AND HAVE THIS PROPERTY OF LAZY=DYNAMIC WOULD NOY BE RETREIVED directly.
+    confirmation = db.relationship(
+        "ConfirmationModel", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+    """
+    user = UserModel(...)
+    confirmation = ConfirmationModel(...)
+    confirmation.save_database()
+    print(user.confirmation) # is allowed with lazy="dynamic"
+    """
+
+    @property
+    def most_recent_confirmation(self):
+        return self.confirmation.order_by(db.desc(ConfirmationModel.expire_at)).first()
+
+    # we can do that -> self.most_recent_confirmation.id and get id of the most
+    # recent confirmation
 
     def json(self) -> Dict:
         return {"id": self.id, "username": self.username, "password": self.password}
 
     def send_confirmation_email(self):
         # http://127.0.0.1:5000/user-confirm/1
-        link = request.url_root[0:-1] + url_for("userconfirmation", user_id=self.id)
+        link = request.url_root[0:-1] + url_for(
+            "confirmation", confirmation_id=self.most_recent_confirmation.id
+        )
 
         if not MAILGUN_API_KEY:
             raise MailGunException("Failed to load MAILGUN API KEY")
