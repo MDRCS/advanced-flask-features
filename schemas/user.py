@@ -1,5 +1,5 @@
 from models.user import UserModel
-from ma import ma
+from marshmallow_model import ma
 
 
 class UserSchema(ma.ModelSchema):

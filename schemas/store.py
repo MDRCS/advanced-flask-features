@@ -1,4 +1,4 @@
-from ma import ma
+from marshmallow_model import ma
 from models.store import StoreModel  # The order of import is important
 from models.item import ItemModel
 from schemas.item import ItemSchema

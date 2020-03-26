@@ -1,4 +1,4 @@
-from ma import ma
+from marshmallow_model import ma
 from models.item import ItemModel
 from models.store import StoreModel
 
