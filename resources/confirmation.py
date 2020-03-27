@@ -9,7 +9,6 @@ from models.user import UserModel, MailGunException
 class Confirmation(Resource):
     def get(self, confirmation_id):
         confirmation = ConfirmationModel.find_by_id(confirmation_id)
-        print(confirmation)
         if not confirmation:
             return {"message": "Not found Confirmation"}, 404
 
@@ -21,7 +20,6 @@ class Confirmation(Resource):
 
         confirmation.confirmed = True
         confirmation.save_database()
-        print("jsjsjjs")
         headers = {"Content-Type": "text/html"}
         return make_response(render_template("confirmation_page.html", email=confirmation.user.email), 200, headers)
 

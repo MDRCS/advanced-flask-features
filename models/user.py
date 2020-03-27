@@ -23,7 +23,7 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
+    password = db.Column(db.String(80))
     email = db.Column(db.String(80), nullable=False, unique=True)
     # LAZY=DYNAMIC # MEAN THAT IF YOU TRY FOR EXAMPLE TO CREATE THAT OBJECT (User) THE CLASS WITH WHICH YOU HAVE THIS
     # RELATIONSHIP (ConfirmationModel) AND HAVE THIS PROPERTY OF LAZY=DYNAMIC WOULD NOY BE RETREIVED directly.

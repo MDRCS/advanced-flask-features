@@ -93,11 +93,11 @@ class UserLogin(Resource):
         user = UserModel.find_by_username(user_data.username)
 
         # this is what the `authenticate()` function did in security.py
-        if user and safe_str_cmp(user.password, user_data.password):
+        if user and user.password and safe_str_cmp(user.password, user_data.password):
             # identity= is what the identity() function did in security.py—now stored in the JWT
-            confirmation = user.most_recent_confirmation 
+            confirmation = user.most_recent_confirmation
             if confirmation and confirmation.confirmed:
-                access_token = create_access_token(identity =user.id, fresh=True)
+                access_token = create_access_token(identity=user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)
                 return {"access_token": access_token, "refresh_token": refresh_token}, 200
             return {"message": NOT_CONFIRMED_ERROR.format(user.username)}, 400
@@ -122,6 +122,39 @@ class TokenRefresh(Resource):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
+
+
+class SetPassword(Resource):
+
+    @classmethod
+    @jwt_refresh_token_required
+    def post(cls):
+        user_json = request.get_json()
+        user_data = user_schema.load(user_json)
+        user = UserModel.find_by_username(user_data.username)
+        if not user:
+            return {"message": "User not found"}, 400
+
+        user.password = user_data.password
+        user.email = user_data.email
+        try:
+            user.save_to_db()
+            confirmation = ConfirmationModel(user_id=user.id)
+            confirmation.save_database()
+            user.send_confirmation_email()
+            return {
+                       "message": "The password is set succefully,"
+                                  " Complete your registration by checking link in your "
+                                  "email address."
+                   }, 201
+        except MailGunException as e:
+            user.delete_from_db()
+            return {"message": str(e)}, 500
+        except:
+            traceback.print_exc()
+            user.delete_from_db()
+            return {"message": FAILED_REGISTER_USER}, 400
+
 
 # class UserConfirmation(Resource):
 #     @classmethod
