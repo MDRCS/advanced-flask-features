@@ -1,6 +1,15 @@
 # Advanced_Flask_Features
 Discover Advanced Features of FLASK
 
+- Principal Features of this RESTful-API :
+
++ CRUD Operations
++ Email Registration Confirmation (Mailgun)
++ Database Migration (Alembic, Flask-Migrate)
++ Image Upload (Flask-Upload)
++ Third-Party 0Auth (Github API OAuth)
++ JWT Tokenization (JWT)
++ Payment Processing (Stripe API)
 
 Documnetation LINK -> https://documenter.getpostman.com/view/6411137/SzYT52HJ?version=latest#4e454e0d-225a-49f1-a707-d01f133634e9
 
@@ -15,5 +24,10 @@ I can see that you solved the problem, but I want to show you the simpler soluti
 -> flask db init
 -> flask db migrate
 -> flask db upgrade
+
+
+Postgresql db hosting service :
+
+https://elephantsql.com/
 
 

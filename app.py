@@ -22,6 +22,7 @@ from resources.store import Store, StoreList
 from resources.confirmation import Confirmation, ConfirmationByUser
 from resources.image import ImageUpload, Image, AvatarImage
 from resources.github_login import GithubLogin, GithubAuthorize
+from resources.order import Order,ListOrders
 
 app = Flask(__name__)
 
@@ -43,10 +44,9 @@ jwt = JWTManager(app)
 
 migrate = Migrate(app, db)
 
-
-@app.before_first_request
-def create_tables():
-    db.create_all()
+db.init_app(app)
+ma.init_app(app)
+oauth.init_app(app)
 
 
 @app.errorhandler(ValidationError)
@@ -79,9 +79,16 @@ api.add_resource(AvatarImage, "/upload/avatar")
 api.add_resource(GithubLogin, "/login/github")
 api.add_resource(GithubAuthorize, "/login/github/authorized", endpoint="github.authorize")
 api.add_resource(SetPassword, "/user/password")
+api.add_resource(Order, "/order")
+api.add_resource(ListOrders, "/orders")
 
 if __name__ == "__main__":
     db.init_app(app)
     ma.init_app(app)
     oauth.init_app(app)
+
+    # @app.before_first_request
+    # def create_tables():
+    #     db.create_all()
+
     app.run(port=5000, debug=True)

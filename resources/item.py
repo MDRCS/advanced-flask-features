@@ -35,16 +35,14 @@ class Item(Resource):
         return {"message": ITEM_NOT_FOUND}, 404
 
     @fresh_jwt_required
-    def post(self, name):
+    def post(self, name: str):
         if ItemModel.find_by_name(name):
-            return (
-                {"message": ITEM_ALREADY_EXIST_ERROR.format(name)},
-                400,
-            )
+            return {"message": ITEM_ALREADY_EXIST_ERROR.format(name)}, 400
 
-        item = item_schema.load(request.get_json())
-        item = ItemModel(name, **item)
-
+        item_json = request.get_json()
+        item_json["name"] = name
+        item = item_schema.load(item_json)
+        print(item.name, item.price, item.store_id)
         try:
             item.save_to_db()
         except:
